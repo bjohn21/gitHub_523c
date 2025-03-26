@@ -1,0 +1,26 @@
+---
+title: "Lab 01 Covid-19"
+author: 
+  name: Billy Johnson
+  email: billyjohnson181@gmail.com
+format: html
+---
+
+```{r}
+# Load my packages
+library(tidyverse)
+library(flextable)
+library(zoo)
+```
+
+```{r}
+# Load in the data
+data <- read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+```
+
+```{r}
+# my data
+my.date <- as.Date("2022-02-01")
+my.state <- "Colorado"
+```
+
