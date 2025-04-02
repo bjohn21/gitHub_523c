@@ -11,6 +11,8 @@ format: html
 library(tidyverse)
 library(flextable)
 library(zoo)
+library(lubridate)
+library(patchwork)
 ```
 
 ```{r}
@@ -22,5 +24,291 @@ data <- read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master
 # my data
 my.date <- as.Date("2022-02-01")
 my.state <- "Colorado"
+```
+
+# Analysis
+```{r}
+data <- data %>% 
+  group_by(county) %>% 
+  mutate(
+    new_cases = cases - lag(cases, n =1),
+    new_deaths = cases - lag(cases, n= 1)
+  ) %>% 
+  drop_na() %>% 
+  ungroup()
+
+data_clean <- data %>% 
+  filter(state == my.state) %>% 
+  group_by(county) %>% 
+  mutate(
+    new_cases = cases - lag(cases, n =1),
+    new_deaths = deaths - lag(deaths, n =1)) %>%
+  drop_na() %>% 
+  ungroup()
+
+```
+
+# Question 1
+Create two tables one with most cummulative cases on specific day
+```{r}
+today_data <- filter(data_clean, date == my.date)
+
+# Top 5 counties cummulative cases
+slice_max(today_data, n = 5, order_by = cases) %>% 
+  select(county, cases) %>% 
+  flextable() %>% 
+  set_caption("Top 5 counties with cummulative cases")
+
+# top 5 counties by new cases
+slice_max(today_data, n = 5, order_by = new_cases) %>% 
+  select(county, state, new_cases) %>% 
+  flextable() %>% 
+  set_caption("Top 5 counties by new cases on Feb 1, 2022")
+```
+
+# Question 2
+Evaluating Census Data (EDA)
+
+```{r}
+pop_url <- 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv'
+```
+
+```{r}
+cd <- read_csv(pop_url) %>% 
+  filter(COUNTY != "000") %>% 
+  mutate(fips = paste0(STATE, COUNTY)) %>% 
+  select(STNAME, COUNTY, fips, contains("2021"))
+
+inner_join(data_clean, cd, by = "fips")
+```
+
+# Question 3
+```{r}
+# Join the pop data to covid data
+covid_pop <- inner_join(data_clean, cd, by = "fips")
+
+CO_data <- covid_pop %>%
+  mutate(
+    case_per_capita = cases / POPESTIMATE2021,
+    new_per_capita = new_cases / POPESTIMATE2021,
+    new_deaths_per_capita = new_deaths / POPESTIMATE2021,
+  )
+
+CO_today <- CO_data %>% 
+  filter(date == my.date)
+
+# Cummulative cases per capita
+slice_max(CO_today, n=5, order_by = case_per_capita) %>% 
+  select(county, case_per_capita) %>% 
+  flextable() %>% 
+  set_caption("Top 5 counties in Colorado with most cummulative cases per capita")
+
+# New cases per capita
+slice_max(CO_today, n = 5, order_by = new_per_capita) %>% 
+  select(county, new_per_capita) %>% 
+  flextable() %>% 
+  set_caption("Top 5 Colorado counties with the most new cases of COVID 19 per capita")
+```
+
+# Question 4
+Rolling Thresholds
+```{r}
+# Filter merged covid/population data for Colorado to only include the last 14 days.
+CO_data_14_days <- CO_data %>% 
+  filter(date >= (max(my.date)-14))
+
+# Group by county & summarize
+CO_data_14_days <- CO_data_14_days %>% 
+  group_by(county) %>% 
+  summarize(total_new_cases = sum(new_cases),
+            population = POPESTIMATE2021[1]) %>% 
+  mutate(cases_per_100k = (total_new_cases / population) * 100000)
+
+# Create tables
+# top 5 counties, cases per 100k people
+slice_max(CO_data_14_days, n = 5, order_by = cases_per_100k) %>% 
+  select(county, cases_per_100k) %>% 
+  flextable() %>% 
+  set_caption("Top 5 cases per 100k people in each county in Colorado")
+```
+
+# Question 5
+Death toll
+```{r}
+# Filter for 2021 & find total deaths in 2021
+CO_covid_2021 <- CO_data %>% 
+  filter(year(date) == 2021) %>% 
+  group_by(county) %>% 
+  summarize(total_covid_deaths = sum(new_deaths)) %>% 
+  ungroup() 
+
+# Join CO_covid_deaths with census data
+CO_covid_2021 <- CO_covid_2021 %>% 
+  left_join(CO_data %>% select(county, RDEATH2021), by = "county")
+
+# Percentage of covid deaths
+CO_covid_2021 <- CO_covid_2021 %>% 
+  mutate(covid_death_ratio = (total_covid_deaths / RDEATH2021) * 100)
+
+# High Covid Counties
+high_covid_death <- CO_covid_2021 %>% 
+  filter(covid_death_ratio >= 20)
+
+# Plot
+high_covid_death %>% 
+  ggplot(aes(x = reorder(county, covid_death_ratio), y = covid_death_ratio))+
+  geom_col()+
+  coord_flip()+
+  labs(
+    y = "Percentage of total deaths",
+    x = "CO County"
+  )+
+  theme_linedraw()
+```
+
+# Question 6
+Multi-state
+```{r}
+# Filter for the states we need & get daily new cases with rolling mean
+multi_state <- data %>% 
+  group_by(state, date) %>% 
+  summarize(daily_new_cases = sum(new_cases, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  filter(state %in% c("New York" , "Colorado", "Alabama", "Ohio")) %>%
+  arrange(state, date) %>% 
+  group_by(state) %>% 
+  mutate(
+    daily_new_cases = daily_new_cases - lag(daily_new_cases, default = 0),
+    rolling_mean = rollmean(daily_new_cases, 7, fill = NA, align = "right")
+  ) %>% 
+  ungroup()
+
+# Plot daily new cases with rolling mean
+multi_state %>% 
+  ggplot(aes(x = date, y = daily_new_cases))+
+  geom_col()+
+  geom_line(aes(y = rolling_mean))+
+  facet_wrap(~ state, scales = "free_y")
+```
+
+Join with the population data
+```{r}
+cd_2 <- cd %>% 
+  mutate(state = STNAME)
+
+multi_state_per_capita <- multi_state %>% 
+  left_join(cd_2, by = "state") %>% 
+  mutate(
+    cases_per_capita = (daily_new_cases / POPESTIMATE2021) * 100000,
+    rolling_mean_per_capita = rollmean(cases_per_capita, 7, fill = NA, align = "right")
+  )
+
+# Plot
+multi_state_per_capita %>% 
+  ggplot(aes(x = date, y = rolling_mean_per_capita, color = state))+
+  geom_line()
+```
+
+# Question 7
+Space and Time
+```{r}
+location_data <- read_csv('https://raw.githubusercontent.com/mikejohnson51/csu-ess-330/refs/heads/main/resources/county-centroids.csv')
+
+# Join with raw covid data
+Covid_spread <- data %>% 
+  left_join(location_data, by = "fips")
+
+# Mean center
+Covid_spread <- Covid_spread %>% 
+  group_by(date) %>% 
+  summarize(
+    wm_x_cases = sum(LON * cases, na.rm = TRUE) / sum(cases, na.rm = TRUE),
+    wm_y_cases = sum(LAT * cases, na.rm = TRUE) / sum(cases, na.rm = TRUE),
+    wm_x_deaths = sum(LON * deaths, na.rm =TRUE) / sum(deaths, na.rm =TRUE),
+    wm_y_deaths = sum(LAT * deaths, na.rm = TRUE) / sum(deaths, na.rm = TRUE)) %>% 
+  arrange(date)
+```
+
+Create plots for weighting mean center over time
+```{r}
+usa_map <- borders("state", fill = "grey90", colour = "white")
+
+plot_cases <- ggplot(data = Covid_spread)+
+  usa_map +
+  geom_point(aes(x = wm_x_cases, y = wm_y_cases), colour = "navy")
+
+plot_deaths <- ggplot(data = Covid_spread)+
+  usa_map +
+  geom_point(aes(x = wm_x_deaths, y = wm_y_deaths), colour = "red")
+
+plot_cases + plot_deaths
+```
+
+# Question 8
+Trends
+```{r}
+# Start with raw covid data
+trend_data <- data %>% 
+  left_join(cd, by = "fips")
+
+# Create new temporal columns
+trend_data <- trend_data %>% 
+  mutate(
+    year = year(date),
+    month = month(date),
+    season = case_when(
+      month %in% 3:5 ~ "spring",
+      month %in% 6:8 ~ "summer",
+      month %in% 9:11 ~ "fall",
+      month %in% c(12, 1, 2) ~ "winter"
+    )
+  )
+
+# Group data by state, year and season then summarize the total population, new cases, and new deaths
+trend_data <- trend_data %>% 
+  group_by(state, year, season) %>% 
+  summarize(
+    total_population = sum(POPESTIMATE2021),
+    cases = sum(new_cases, na.rm = TRUE),
+    deaths = sum(new_deaths, na.rm = TRUE)
+  ) %>% 
+  ungroup() %>%
+  filter(!is.na(cases), !is.na(deaths), !is.na(total_population)) %>% 
+  mutate(
+    scale_d = log(deaths+1),
+    scale_c = log(cases+1),
+    scale_p = log(total_population)
+  )
+```
+
+## Model Building
+```{r}
+# Build a linear model
+linear_model <- lm(scale_c ~ scale_d * scale_p + season, data = trend_data)
+
+# Summarize the model
+summary(linear_model)
+```
+
+# Question 9
+Evaluation
+```{r}
+a <- broom::augment(linear_model, new_data = trend_data)
+
+ggplot(a, aes(x = scale_c, y = .fitted))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  geom_abline(col = "red")+
+  labs(
+    x = "cases",
+    y = "Predicted"
+  )
+
+ggplot(a, aes(x = .resid))+
+  geom_histogram()+
+  labs(
+    title = "residuals",
+    x = "Residuals"
+  )
 ```
 
