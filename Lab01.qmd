@@ -28,16 +28,16 @@ my.state <- "Colorado"
 
 # Analysis
 ```{r}
-data <- data %>% 
-  group_by(county) %>% 
+data_2 <- data %>% 
+  group_by(fips) %>% 
   mutate(
-    new_cases = cases - lag(cases, n =1),
-    new_deaths = cases - lag(cases, n= 1)
+    new_cases = pmax(0, cases - lag(cases, n = 1)),
+    new_deaths = pmax(cases - lag(cases, n= 1))
   ) %>% 
   drop_na() %>% 
   ungroup()
 
-data_clean <- data %>% 
+data_clean <- data_2 %>% 
   filter(state == my.state) %>% 
   group_by(county) %>% 
   mutate(
@@ -78,8 +78,6 @@ cd <- read_csv(pop_url) %>%
   filter(COUNTY != "000") %>% 
   mutate(fips = paste0(STATE, COUNTY)) %>% 
   select(STNAME, COUNTY, fips, contains("2021"))
-
-inner_join(data_clean, cd, by = "fips")
 ```
 
 # Question 3
@@ -170,7 +168,7 @@ high_covid_death %>%
 Multi-state
 ```{r}
 # Filter for the states we need & get daily new cases with rolling mean
-multi_state <- data %>% 
+multi_state <- data_2 %>% 
   group_by(state, date) %>% 
   summarize(daily_new_cases = sum(new_cases, na.rm = TRUE)) %>% 
   ungroup() %>% 
@@ -248,11 +246,8 @@ plot_cases + plot_deaths
 Trends
 ```{r}
 # Start with raw covid data
-trend_data <- data %>% 
-  left_join(cd, by = "fips")
-
-# Create new temporal columns
-trend_data <- trend_data %>% 
+trend_data <- data_2 %>% 
+  left_join(cd, by = "fips") %>% 
   mutate(
     year = year(date),
     month = month(date),
@@ -265,11 +260,15 @@ trend_data <- trend_data %>%
   )
 
 # Group data by state, year and season then summarize the total population, new cases, and new deaths
-trend_data <- trend_data %>% 
+trend_data2 <- trend_data %>% 
   group_by(state, year, season) %>% 
+  mutate(
+    new_cases = pmax(cases - lag(cases, n =1)),
+    new_deaths = pmax(deaths - lag(deaths, n= 1))
+  ) %>% 
   summarize(
     total_population = sum(POPESTIMATE2021),
-    cases = sum(new_cases, na.rm = TRUE),
+    cases  = sum(new_cases, na.rm = TRUE),
     deaths = sum(new_deaths, na.rm = TRUE)
   ) %>% 
   ungroup() %>%
@@ -277,14 +276,15 @@ trend_data <- trend_data %>%
   mutate(
     scale_d = log(deaths+1),
     scale_c = log(cases+1),
-    scale_p = log(total_population)
-  )
+    scale_p = log(total_population + 1)
+  ) %>% 
+  drop_na()
 ```
 
 ## Model Building
 ```{r}
 # Build a linear model
-linear_model <- lm(scale_c ~ scale_d * scale_p + season, data = trend_data)
+linear_model <- lm(scale_c ~ scale_d * scale_p + season, data = trend_data2)
 
 # Summarize the model
 summary(linear_model)
