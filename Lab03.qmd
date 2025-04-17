@@ -1,0 +1,436 @@
+---
+title: "Lab 03"
+author: 
+  name: Billy Johnson
+  email: billyjohnson181@gmail.com
+format: 
+  html:
+    df-print: kable
+---
+```{r, message=FALSE}
+library(tidyverse)
+library(sf)
+library(rmapshaper)
+library(units)
+library(knitr)
+library(kableExtra)
+library(gghighlight)
+library(leaflet)
+library(leafem)
+```
+
+
+# National Dam Inventory
+
+# Question 1
+
+### Step 1.1
+```{r}
+AOI <- remotes::install_github("mikejohnson51/AOI")
+
+US_counties <- AOI::aoi_get(state = "conus", county = "all")
+
+US_counties_sf <- US_counties %>% 
+  st_transform(crs = "EPSG:5070")
+```
+
+### Step 1.2
+```{r}
+counties_centroid <- US_counties_sf %>% 
+  st_centroid()
+
+county_points <- st_union(counties_centroid)
+```
+
+### Step 1.3
+```{r}
+# Voroni
+voroni_tessellation <- st_voronoi(county_points)%>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n()) %>% 
+  st_cast()
+
+# Triangulated
+triangulated_tessellation <- st_triangulate(county_points)%>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n()) %>% 
+  st_cast()
+
+# Gridded Coverage
+gridded_coverage <- st_make_grid(county_points, n = 70)%>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n()) %>% 
+  st_cast()
+
+# Hexagonal coverage
+hexegonal_coverage <- st_make_grid(county_points, square = FALSE, n = 70) %>% 
+  st_as_sf() %>% 
+  mutate(id = 1:n()) %>% 
+  st_cast()
+```
+
+### Step 1.4
+```{r}
+conus_boundary <- st_union(US_counties_sf)
+
+# Voroni
+USA_voroni <- st_intersection(voroni_tessellation, conus_boundary)
+
+# Triangulate
+USA_triangulate <- st_intersection(triangulated_tessellation, conus_boundary)
+
+# Gridded
+USA_gridded <- st_intersection(gridded_coverage, conus_boundary)
+
+# Hexegonal
+USA_hexegonal <- st_intersection(hexegonal_coverage, conus_boundary)
+```
+
+### Step 1.5
+```{r}
+# Simplify unioned border
+simple_USA_boundary <- ms_simplify(conus_boundary, keep = 0.05)
+```
+
+Number of points
+```{r}
+mapview::npts(conus_boundary)
+
+mapview::npts(simple_USA_boundary)
+```
+
+Doing the simplification step I was able to remove 10,715 points. Some consequences of doing this computationally may lead to removal of important features. 
+
+Crop triangulated tessellations
+```{r}
+USA_triangulate_crop <- st_intersection(USA_triangulate, simple_USA_boundary)
+
+triangulate_tessellation_crop <- st_intersection(triangulated_tessellation, simple_USA_boundary)
+```
+
+### Step 1.6
+```{r}
+# Write function to plot tessellations
+tessellation_plot_funct <- function(arg1, arg2){
+  ggplot(data = arg1)+
+    geom_sf(fill = "white", color = "navy", size = 0.2)+
+    theme_void()+
+    labs(
+      title = arg2,
+      caption = paste("Number of features in arg 1 = ", nrow(arg1)))
+}
+```
+
+### Step 1.7
+
+Voroni Tessellation
+```{r}
+tessellation_plot_funct(USA_voroni, "Voroni Tessellation")
+```
+
+Triangulate Tessellation
+```{r}
+tessellation_plot_funct(USA_triangulate_crop, "Triangulate Tessellation")
+```
+
+Square Grid Coverage
+```{r}
+tessellation_plot_funct(USA_gridded, "Square Grid Coverage")
+```
+
+Hexagonal Grid Coverage
+```{r}
+tessellation_plot_funct(USA_hexegonal, "Hexagonal Grid Coverage")
+```
+
+Original County Data
+```{r}
+tessellation_plot_funct(US_counties_sf, "Original County Data")
+```
+
+# Question 2
+
+### Step 2.1
+Create function for turning SF object and Character string to return data.frame
+```{r}
+tessellated_surfaces_funct <- function(arg1, arg2) {
+  areas_km2 <- st_area(arg1) %>% 
+    set_units(km^2) %>% 
+    drop_units()
+  
+  summary_df <- data.frame(
+    description = arg2,
+    num_features = nrow(arg1),
+    mean_area_km2 = mean(areas_km2),
+    sd_area_km2 = sd(areas_km2),
+    total_area_km2 = sum(areas_km2)
+  )
+  
+  return(summary_df)
+}
+```
+
+### Step 2.2
+Summarize each of the tessellations and the original counties
+
+Voroni Tessellation Surface Summary
+```{r}
+V_sum <- tessellated_surfaces_funct(USA_voroni, "Voroni Tessellated Surfaces")
+
+V_sum
+```
+
+Triangulated Tessellation Surface Summary
+```{r}
+T_sum <- tessellated_surfaces_funct(USA_triangulate_crop, "Triangulated Tessellation Surface Summary")
+
+T_sum
+```
+
+Square Grid Surface Summary
+```{r}
+SG_sum <- tessellated_surfaces_funct(USA_gridded, "Square Grid Surface Summary")
+
+SG_sum
+```
+
+Hexagonal Grid Surface Summary 
+```{r}
+H_sum <- tessellated_surfaces_funct(USA_hexegonal, "Hexagonal Grid Surface Summary")
+
+H_sum
+```
+
+Original County Surface Summary
+```{r}
+O_sum <- tessellated_surfaces_funct(US_counties_sf, "Original County Surface Summary")
+
+O_sum
+```
+
+### Step 2.3
+```{r}
+tesselation_summaries <- bind_rows(V_sum, T_sum, SG_sum, H_sum, O_sum)
+
+tesselation_summaries
+```
+
+### Step 2.4
+Print data frame as a nice table
+```{r}
+tesselation_summaries %>% 
+  kable(digits = 2, caption = "Summary of differnt Tessellation Methods for the United States Counties", format = "html")
+```
+
+### Step 2.5
+
+Voroni polygons are variable in shape and size. Because these types of tessellations are adaptive to data they are very sensitive to changes. We also see that in the triangulated tessellation because these are variable in shape and size and are dependent on the data. This differed in the other methods square and hexagonal. These are fixed shapes and sizes. They just help interpret the data in a country balanced view. 
+
+# Question 3
+
+### Step 3.1
+```{r}
+# Load in the Dam invintory data
+dam_data_raw <- read_csv("NID2019_U.csv")
+
+usa <- AOI::aoi_get(state = "conus") %>% 
+  st_union() %>% 
+  st_transform(5070)
+
+dams <- dam_data_raw %>% 
+  filter(!is.na(LATITUDE)) %>% 
+  st_as_sf(coords = c("LONGITUDE", "LATITUDE"), crs = 4236) %>% 
+  st_transform(5070) %>% 
+  st_filter(usa)
+```
+
+### Step 3.2
+Create points in polygon function
+```{r}
+points_in_polygon <- function(points, polygon, var){
+  st_join(polygon, points) %>% 
+    st_drop_geometry() %>% 
+    count(get(var)) %>% 
+    setNames(c(var, "n")) %>% 
+    left_join(polygon, by = var) %>% st_as_sf()
+}
+```
+
+### Step 3.3
+Voroni Tessellation
+```{r}
+V_dam <- points_in_polygon(dams, USA_voroni, "id")
+
+```
+
+Triangulated Tessellation
+```{r}
+T_dam <- points_in_polygon(dams, USA_triangulate_crop, "id")
+
+```
+
+Square Grid Coverage
+```{r}
+S_dam <- points_in_polygon(dams, USA_gridded, "id")
+
+```
+
+Hexagonal Grid Coverage
+```{r}
+H_dam <- points_in_polygon(dams, USA_hexegonal, "id")
+
+```
+
+Original County
+```{r}
+# O_dam <- points_in_polygon(dams, US_counties_sf, "id")
+```
+
+### Step 3.4
+Create function for plotting dams
+```{r}
+# Dam plotting function
+dam_plot_funct <- function(arg1, arg2){
+  ggplot(data = arg1)+
+    geom_sf(aes(fill = n), color = NA)+
+    scale_fill_viridis_c(option = "D", name = "Number of Dams")+
+    theme_void()+
+    labs(
+      title = arg2,
+      caption = paste("Total Number of Dams = ", sum(arg1$n, na.rm = TRUE)))
+}
+```
+
+### Step 3.5
+
+Voroni Dam Plot
+```{r}
+dam_plot_funct(V_dam, "Voroni Tesselation Dam Map")
+```
+
+Triangulated Dam Plot
+```{r}
+dam_plot_funct(T_dam, "Triangulated Tesselation Dam Map")
+```
+
+Square Gridded Dam Plot
+```{r}
+dam_plot_funct(S_dam, "Squared Gridded Coverage Dam Map")
+```
+
+Hexagonal Grid Dam Plot
+```{r}
+dam_plot_funct(H_dam, "Hexagonal Grid Coverage Dam Map")
+```
+
+### Step 3.6
+
+the influence of the tessellated surfaces was shocking to me. The two coverage tactics showed results while the vorni and triangulated methods seemed to have to big of tiles to pull information. To move on I will be useing the hexagonal tessellation. This view seemed to be balanced and not to big and was able to also not create clustering effects. 
+
+# Question 4
+
+### Step 4.1
+Choose 4 dam purposes
+C - Flood Control
+I - Irrigation 
+S - Water Supply
+F - Fish and Wildlife
+```{r}
+flood_dams <- dams %>% filter(grepl("C", PURPOSES))
+
+Irrigation_dams <- dams %>% filter(grepl("I", PURPOSES))
+
+Supply_dams <- dams %>% filter(grepl("S", PURPOSES))
+
+Fish_dams <- dams %>% filter(grepl("F", PURPOSES))
+
+```
+
+Run the points in polygons with hexagonal grid coverage tessellation
+```{r}
+# flood
+Hex_flood <- points_in_polygon(flood_dams, USA_hexegonal, "id")
+# Irrigation
+Hex_irrigation <- points_in_polygon(Irrigation_dams, USA_hexegonal, "id")
+# Water Supply
+Hex_supply <- points_in_polygon(Supply_dams, USA_hexegonal, "id")
+# Fish
+Hex_fish <-
+points_in_polygon(Fish_dams, USA_hexegonal, "id")
+```
+
+### Step 4.2
+plot 
+```{r}
+threshold <- mean(Hex_flood$n, na.rm = TRUE) + sd(Hex_flood$n, na.rm = TRUE)
+```
+
+Flood Control Dams
+```{r}
+dam_plot_funct(Hex_flood, "Flood Control Dams") +
+  gghighlight(n > threshold)
+```
+
+Irrigation Dams
+```{r}
+dam_plot_funct(Hex_irrigation, "Irrigation Dams")+
+  gghighlight(n > threshold)
+```
+
+Water Supply Dams
+```{r}
+dam_plot_funct(Hex_supply, "Water Supply Dams")+
+  gghighlight(n > threshold)
+```
+
+Fish and Wildlife Dams
+```{r}
+dam_plot_funct(Hex_fish, "Fish and Wildlife Dams")+
+  gghighlight(n > threshold)
+```
+
+### Step 4.3
+
+After looking at the major purpose dams that i had picked i noted a couple of trends. Irrigation dams are located across the entire county. They seem to follow the middle of the county with a bit of a higher concentration in the rocky mountains. When looking at flood control dams these follow the wettest parts of the county. The Mississippi basin has some of the most water in the county and most of these dams are not massive but there are a lot to prevent flooding. Water supply dams make sense. There is a small concentration of them in New York but this is the biggest city in the world without a lot of freshwater availability. Also we can see that a lot fo dams are in the west and throughout the drier parts of the county. Finally as to my surprise all of the fish dams are concentrated in the Midwest to south. I had always imagined these dams would be priorities in the west. 
+
+# Question 5
+```{r}
+# read in major river data
+major_rivers <- read_sf("majorrivers_0_0/MajorRivers.shp")
+
+mississippi_river <- major_rivers %>% 
+  filter(SYSTEM == "Mississippi") %>% 
+  st_transform(crs = 4326)
+```
+
+```{r}
+# Filter for high risk flood dams
+high_risk_dams <- dams %>% 
+  filter(grepl("C", PURPOSES), HAZARD == "H") %>% 
+  group_by(STATE) %>% 
+  slice_max(NID_STORAGE, n = 1) %>% 
+  ungroup() %>% 
+  st_transform(crs = 4326)
+```
+
+Build the Map
+```{r}
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolylines(data = mississippi_river, color = "blue", weight = 2) %>%
+  addCircleMarkers(
+    data = high_risk_dams,
+    radius = ~NID_STORAGE / 1500000,
+    color = "red",
+    fillOpacity = 0.8,
+    stroke = FALSE,
+    # Cannot get leafem to work
+    popup = ~paste0(
+      "<b>Name:</b> ", DAM_NAME, "<br>",
+      "<b>Storage:</b> ", format(NID_STORAGE, big.mark = ","), "<br>",
+  "<b>Purpose:</b> ", PURPOSES, "<br>",
+  "<b>Year:</b> ", YEAR_COMPLETED
+    )
+  )
+```
+
