@@ -1,8 +1,10 @@
 ---
-title: "Lab 04: Rasters & Remote Sensing"
-author: "Billy Johnson"
+title: "Lab04: Flood Mapping"
+subtitle: 'Ecosystem Science and Sustanability 523c'
+author: 
+  name: Billy Johnson
+  email: billyjohsnon181@gmail.com
 format: html
-editor: visual
 ---
 
 ## Palo Iowa Flooding
@@ -335,7 +337,7 @@ THe removal of 0 with NA values caused the pixels to average through the missing
 # Extra Credit
 Use a slippy map to find an place in Palo,Iowa
 ```{r}
-mapview(palo_3, slippy)
+mapview(palo_3)
 
 flood_lat <- 42.06347
 flood_lon <- -91.78925

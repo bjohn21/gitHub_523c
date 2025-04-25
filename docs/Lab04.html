@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Billy Johnson">
+
+<title>Lab04: Flood Mapping</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Lab04_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Lab04_files/libs/quarto-html/quarto.js"></script>
+<script src="Lab04_files/libs/quarto-html/popper.min.js"></script>
+<script src="Lab04_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Lab04_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Lab04_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Lab04_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Lab04_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Lab04_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Lab04_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="Lab04_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="Lab04_files/libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<link href="Lab04_files/libs/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+<script src="Lab04_files/libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="Lab04_files/libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
+<script src="Lab04_files/libs/proj4-2.6.2/proj4.min.js"></script>
+<script src="Lab04_files/libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="Lab04_files/libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
+<script src="Lab04_files/libs/leaflet-binding-2.2.2/leaflet.js"></script>
+<script src="Lab04_files/libs/leaflet-providers-2.0.0/leaflet-providers_2.0.0.js"></script>
+<script src="Lab04_files/libs/leaflet-providers-plugin-2.2.2/leaflet-providers-plugin.js"></script>
+<script src="Lab04_files/libs/flood_agreement - 1_29304e-1/data_stars_flood_agreement140e538.txt"></script>
+<script src="Lab04_files/libs/joda-0.0.1/joda.js"></script>
+<script src="Lab04_files/libs/joda-0.0.1/addImageQuery-bindings.js"></script>
+<script src="Lab04_files/libs/clipboard-0.0.1/setClipboardText.js"></script>
+<script src="Lab04_files/libs/HomeButton-0.0.1/home-button.js"></script>
+<script src="Lab04_files/libs/HomeButton-0.0.1/easy-button-src.min.js"></script>
+<link href="Lab04_files/libs/flood_agreement - 1-CSS-0.0.1/flood_agreement - 1_home-button.css" rel="stylesheet">
+<link href="Lab04_files/libs/mapviewCSS-0.0.1/mapview-popup.css" rel="stylesheet">
+<link href="Lab04_files/libs/mapviewCSS-0.0.1/mapview.css" rel="stylesheet">
+<script src="Lab04_files/libs/flood_agreement_na - 1_249fe7-1/data_stars_flood_agreement_na16e15ba.txt"></script>
+<link href="Lab04_files/libs/flood_agreement_na - 1-CSS-0.0.1/flood_agreement_na - 1_home-button.css" rel="stylesheet">
+<link href="Lab04_files/libs/palo_3-CSS-0.0.1/palo_3_home-button.css" rel="stylesheet">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab04: Flood Mapping</h1>
+<p class="subtitle lead">Ecosystem Science and Sustanability 523c</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Billy Johnson <a href="mailto:billyjohsnon181@gmail.com" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="palo-iowa-flooding" class="level2">
+<h2 class="anchored" data-anchor-id="palo-iowa-flooding">Palo Iowa Flooding</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load in package</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rstac)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mapview)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="step-1-aoi-identification" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-aoi-identification">Step 1: AOI identification</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>palo <span class="ot">&lt;-</span> AOI<span class="sc">::</span><span class="fu">geocode</span>(<span class="st">"Palo, Iowa"</span>, <span class="at">bbox =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-2-temporal-identification" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-temporal-identification">Step 2: Temporal Identification</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>temporal_range <span class="ot">&lt;-</span> <span class="st">"2016-09-24/2016-09-29"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-3-identifying-the-relevant-images" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-identifying-the-relevant-images">Step 3: Identifying the Relevant Images</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Open a connection to the MPC STAC API</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>(stac_query <span class="ot">&lt;-</span> <span class="fu">stac</span>(<span class="st">"https://planetarycomputer.microsoft.com/api/stac/v1"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>###rstac_query
+- url: https://planetarycomputer.microsoft.com/api/stac/v1/
+- params:
+- field(s): version, base_url, endpoint, params, verb, encode</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>(stac_query <span class="ot">&lt;-</span> <span class="fu">stac</span>(<span class="st">"https://planetarycomputer.microsoft.com/api/stac/v1"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">stac_search</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">collections =</span> <span class="st">"landsat-c2-l2"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_request</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>###Items
+- features (250 item(s)):
+  - LC09_L2SR_094032_20250423_02_T2
+  - LC09_L2SP_094022_20250423_02_T2
+  - LC09_L2SP_094018_20250423_02_T2
+  - LC09_L2SP_094017_20250423_02_T1
+  - LC09_L2SP_094016_20250423_02_T1
+  - LC09_L2SP_094015_20250423_02_T2
+  - LC09_L2SP_094014_20250423_02_T2
+  - LC09_L2SP_094013_20250423_02_T1
+  - LC09_L2SP_094012_20250423_02_T1
+  - LC09_L2SP_094011_20250423_02_T1
+  - ... with 240 more feature(s).
+- assets: 
+ang, atran, blue, cdist, coastal, drad, emis, emsd, green, lwir11, mtl.json, mtl.txt, mtl.xml, nir08, qa, qa_aerosol, qa_pixel, qa_radsat, red, rendered_preview, swir16, swir22, tilejson, trad, urad
+- item's fields: 
+assets, bbox, collection, geometry, id, links, properties, stac_extensions, stac_version, type</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>(stac_query <span class="ot">&lt;-</span> <span class="fu">stac</span>(<span class="st">"https://planetarycomputer.microsoft.com/api/stac/v1"</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stac_search</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">collections =</span> <span class="st">"landsat-c2-l2"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">datetime    =</span> temporal_range,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">bbox        =</span> <span class="fu">st_bbox</span>(palo)) <span class="sc">%&gt;%</span>  </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_request</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>###Items
+- features (2 item(s)):
+  - LC08_L2SP_025031_20160926_02_T1
+  - LE07_L2SP_026031_20160925_02_T1
+- assets: 
+ang, atmos_opacity, atran, blue, cdist, cloud_qa, coastal, drad, emis, emsd, green, lwir, lwir11, mtl.json, mtl.txt, mtl.xml, nir08, qa, qa_aerosol, qa_pixel, qa_radsat, red, rendered_preview, swir16, swir22, tilejson, trad, urad
+- item's fields: 
+assets, bbox, collection, geometry, id, links, properties, stac_extensions, stac_version, type</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>(stac_query <span class="ot">&lt;-</span> <span class="fu">stac</span>(<span class="st">"https://planetarycomputer.microsoft.com/api/stac/v1"</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stac_search</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">collections =</span> <span class="st">"landsat-c2-l2"</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">datetime    =</span> temporal_range,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">bbox        =</span> <span class="fu">st_bbox</span>(palo),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">limit =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_request</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>###Items
+- features (1 item(s)):
+  - LC08_L2SP_025031_20160926_02_T1
+- assets: 
+ang, atran, blue, cdist, coastal, drad, emis, emsd, green, lwir11, mtl.json, mtl.txt, mtl.xml, nir08, qa, qa_aerosol, qa_pixel, qa_radsat, red, rendered_preview, swir16, swir22, tilejson, trad, urad
+- item's fields: 
+assets, bbox, collection, geometry, id, links, properties, stac_extensions, stac_version, type</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>(stac_query <span class="ot">&lt;-</span> <span class="fu">stac</span>(<span class="st">"https://planetarycomputer.microsoft.com/api/stac/v1"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stac_search</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">collections =</span> <span class="st">"landsat-c2-l2"</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">datetime    =</span> temporal_range,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">bbox        =</span> <span class="fu">st_bbox</span>(palo),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">limit =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_request</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">items_sign</span>(<span class="fu">sign_planetary_computer</span>()))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>###Items
+- features (1 item(s)):
+  - LC08_L2SP_025031_20160926_02_T1
+- assets: 
+ang, atran, blue, cdist, coastal, drad, emis, emsd, green, lwir11, mtl.json, mtl.txt, mtl.xml, nir08, qa, qa_aerosol, qa_pixel, qa_radsat, red, rendered_preview, swir16, swir22, tilejson, trad, urad
+- item's fields: 
+assets, bbox, collection, geometry, id, links, properties, stac_extensions, stac_version, type</code></pre>
+</div>
+</div>
+</section>
+<section id="step-4-downloading-needed-images" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-downloading-needed-images">Step 4: Downloading needed images</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># knitr::include_graphics("images/lsat8-bands.jpg")</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Bands 1-6</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>bands <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'coastal'</span>, <span class="st">'blue'</span>,<span class="st">'green'</span>, <span class="st">'red'</span>, <span class="st">'nir08'</span>, <span class="st">'swir16'</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the data</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">assets_download</span>(<span class="at">items =</span> stac_query,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">asset_names =</span> bands,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">output_dir =</span> <span class="st">'data'</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>###Items
+- features (1 item(s)):
+  - LC08_L2SP_025031_20160926_02_T1
+- assets: blue, coastal, green, nir08, red, swir16
+- item's fields: 
+assets, bbox, collection, geometry, id, links, properties, stac_extensions, stac_version, type</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="question-1-data-access" class="level1">
+<h1>Question 1 : Data Access</h1>
+<section id="step-5-analyze-the-images" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-analyze-the-images">Step 5: Analyze the images</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load in landsat_stack</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>landsat_folder <span class="ot">&lt;-</span> <span class="st">"~/Desktop/Grad School Things/Spring Classes/523c/gitHub_523c/data/landsat-c2/level-2/standard/oli-tirs/2016/025/031/LC08_L2SP_025031_20160926_20200906_02_T1"</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>tif_files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(landsat_folder, <span class="at">pattern =</span> <span class="st">"_SR_B[1-6]</span><span class="sc">\\</span><span class="st">.TIF$"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>landsat_stack <span class="ot">&lt;-</span> <span class="fu">rast</span>(tif_files)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(landsat_stack) <span class="ot">&lt;-</span> bands</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform AOI to the CRS of landsat stack</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>palo_2 <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(palo, <span class="fu">crs</span>(landsat_stack))</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to terra</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>palo_3 <span class="ot">&lt;-</span> <span class="fu">vect</span>(palo_2)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Crop &amp; Mask</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>landsat_crop <span class="ot">&lt;-</span> <span class="fu">crop</span>(landsat_stack, palo_3)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>landsat_crop <span class="ot">&lt;-</span> <span class="fu">mask</span>(landsat_crop, palo_3)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a><span class="do">## True Color</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plotRGB</span>(landsat_crop, <span class="at">r=</span><span class="dv">3</span>, <span class="at">g=</span><span class="dv">2</span>, <span class="at">b =</span><span class="dv">1</span>,</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">stretch =</span> <span class="st">"lin"</span>,</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">"True Color RGB Composite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># False Color</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotRGB</span>(landsat_crop, <span class="at">r =</span> <span class="dv">4</span>, <span class="at">g =</span> <span class="dv">3</span>, <span class="at">b =</span> <span class="dv">2</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">stretch =</span> <span class="st">"lin"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">"Flase Color RGB Composite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="question-2-data-visualization" class="level1">
+<h1>Question 2: Data Visualization</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R-G-B (natural color)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotRGB</span>(landsat_crop, <span class="at">r =</span> <span class="dv">4</span>, <span class="at">g =</span> <span class="dv">3</span>, <span class="at">b =</span> <span class="dv">2</span>,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">stretch =</span> <span class="st">"lin"</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">"Natural Color"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># NIR-R-G (color infared)</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotRGB</span>(landsat_crop, <span class="at">r =</span> <span class="dv">5</span>, <span class="at">g =</span> <span class="dv">4</span>, <span class="at">b =</span> <span class="dv">3</span>,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">stretch =</span> <span class="st">"lin"</span>,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">"Color Infared"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># NIR-SWIR1-r (false color water focus)</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotRGB</span>(landsat_crop, <span class="at">r =</span> <span class="dv">5</span>, <span class="at">g =</span> <span class="dv">6</span>, <span class="at">b =</span> <span class="dv">4</span>,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">stretch =</span> <span class="st">"lin"</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">"False Color Water Focus"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-7-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Your Choice - Fire (SWIR1-NIR-G)</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotRGB</span>(landsat_crop, <span class="at">r =</span> <span class="dv">6</span>, <span class="at">g =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">4</span>,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">stretch =</span> <span class="st">"lin"</span>,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">"Custom: Fire"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-7-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>What does each image allow you to see?</p>
+<p>The natural color image allows you to see what the human eye can see. Vegetation appears green, this is best for general visualization. Color infrared best shows healthy vegetation. The areas with bright red have the healthiest green vegetation production. The false color water focus is showing what areas on our image are wetter than others. The blue river and darker colors indicate wetter areas and these areas are absorbing more near infrared. Finally the custom option that I chose to do isn’t supper applicable here but in other watershed can be. I chose to do burn area detection. UnBurned vegetation will appear to be pink or green while the burned areas will appear to be dark brown or black.</p>
+</section>
+<section id="question-3-indices-and-thresholds" class="level1">
+<h1>Question 3: Indices and Thresholds</h1>
+<section id="step-1-raster-algebra" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-raster-algebra">Step 1: Raster Algebra</h3>
+<p>create 5 new rasters using indices</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define colors</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>green <span class="ot">&lt;-</span> landsat_crop[[<span class="dv">3</span>]]</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>red <span class="ot">&lt;-</span> landsat_crop[[<span class="dv">4</span>]]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>blue <span class="ot">&lt;-</span> landsat_crop[[<span class="dv">2</span>]]</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>NIR <span class="ot">&lt;-</span> landsat_crop[[<span class="dv">5</span>]]</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>SWIR <span class="ot">&lt;-</span> landsat_crop[[<span class="dv">6</span>]]</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># NDVI - Normalized Difference Vegetation Index</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>NDVI <span class="ot">&lt;-</span> (NIR <span class="sc">-</span> red) <span class="sc">/</span> (NIR <span class="sc">+</span> red)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co"># NDWI - Normalized Difference Water Index</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>NDWI <span class="ot">&lt;-</span> (green <span class="sc">-</span> NIR) <span class="sc">/</span> (green <span class="sc">+</span> NIR)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co"># MNDWI - Modified Normalized Difference Water Index</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>MNDWI <span class="ot">&lt;-</span> (green <span class="sc">-</span> SWIR) <span class="sc">/</span> (green <span class="sc">+</span> SWIR)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co"># WRI - Water Ratio Index</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>WRI <span class="ot">&lt;-</span> (green <span class="sc">+</span> red) <span class="sc">/</span> (NIR <span class="sc">+</span> SWIR)</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="co"># SWI - Simple Water Index</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>SWI <span class="ot">&lt;-</span> (<span class="dv">1</span>) <span class="sc">/</span> (<span class="fu">sqrt</span>(blue <span class="sc">-</span> SWIR))</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine the rasters</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>index_stack <span class="ot">&lt;-</span> <span class="fu">c</span>(NDVI, NDWI, MNDWI, WRI, SWI)</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(index_stack) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"NDVI"</span>, <span class="st">"NDWI"</span>, <span class="st">"MNDWI"</span>, <span class="st">"WRI"</span>, <span class="st">"SWI"</span>)</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Create palette</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>palette <span class="ot">&lt;-</span> <span class="fu">colorRampPalette</span>(<span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"white"</span>, <span class="st">"red"</span>))(<span class="dv">256</span>)</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(index_stack, <span class="at">col =</span> palette)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>When looking at the 5 different index’s that we created we can see that in the NDVI the vegetation index we can see that the areas in red have the highest chance of being healthy vegetation. This makes sense as it seems to follow the river edge. We can see in the NDWI the high values (red/white) are the locations where we would expect to see water. The river in this image is clearly highlighted red meaning this also worked. The modified NDWI improves the past index a bit in a urban setting. This uses SWIR instead of NIR and this helps account for the urban structures. The WRI looks at the general wetness in an area. There are sections in the floodplain and in the river that are clearly wetter than the other areas. Finally the SWI helps you see the open water from everything that is dry.</p>
+</section>
+<section id="step-2-raster-thresholding" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-raster-thresholding">Step 2: Raster Thresholding</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the thresholds for flooding</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"># NDVI (flood = NDVI &lt; 0)</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>ndvi_flooded <span class="ot">&lt;-</span> <span class="fu">app</span>(NDVI, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="co"># NDWI (flood = NDWI &gt; 0)</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>ndwi_flooded <span class="ot">&lt;-</span> <span class="fu">app</span>(NDWI, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"># MNDWI (Flood = MNDWI &gt; 0 )</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>mndwi_flooded <span class="ot">&lt;-</span> <span class="fu">app</span>(MNDWI, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="co"># WRI (flood = WRI &gt; 1)</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>wri_flooded <span class="ot">&lt;-</span> <span class="fu">app</span>(WRI, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="co"># SWI (flood = SWI &lt; 5)</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>swi_flooded <span class="ot">&lt;-</span> <span class="fu">app</span>(SWI, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">&lt;</span> <span class="fl">0.2</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>flood_stack <span class="ot">&lt;-</span> <span class="fu">c</span>(ndvi_flooded, ndwi_flooded, mndwi_flooded, wri_flooded, swi_flooded)</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(flood_stack) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"NDVI Flood"</span>, <span class="st">"NDWI Flood"</span>, <span class="st">"MNDWI Flood"</span>, <span class="st">"WRI Flood"</span>, <span class="st">"SWI Flood"</span>)</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Set NA to zero</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>flood_stack <span class="ot">&lt;-</span> <span class="fu">app</span>(flood_stack, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(<span class="fu">is.na</span>(x), <span class="dv">0</span>, x))</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(flood_stack, <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"white"</span>, <span class="st">"blue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="step-3-describe" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-describe">Step 3: Describe</h3>
+<p>After plotting all of the thresholds for flooding based on the different index’s we can see that there are some with different results than others. We can see that the MNDWI index resulted in a greater area that was flooded. This may be better in this situation because we do have a good amount of urban influence. The WRI seems to be a little underestimated because this is less focused on water detection but more on moisture levels.</p>
+</section>
+</section>
+<section id="question-4-supervised-or-unserpervised-classification" class="level1">
+<h1>Question 4: Supervised or unserpervised classification</h1>
+<section id="step-1-set.seed" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-set.seed">Step 1: Set.seed()</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Produce a consistent/reproducible result from a random process</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-2-values-dim" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-values-dim">Step 2: values () &amp; dim()</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the values from raster stack</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>values <span class="ot">&lt;-</span> <span class="fu">values</span>(landsat_crop)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check the dimensions of the extracted values</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(values)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 12192     6</code></pre>
+</div>
+</div>
+<p>The dimensions of the extracted values tell you that from each of the 6 layers we have gotten 12,192 values.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove the NA values</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>values <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(values)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-3-kmeans-clustering-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-kmeans-clustering-algorithm">Step 3: kmeans clustering algorithm</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>kmeans <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(values, <span class="at">centers =</span> <span class="dv">12</span>, <span class="at">iter.max =</span> <span class="dv">100</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>kmeans_2 <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(values, <span class="at">centers =</span> <span class="dv">8</span>, <span class="at">iter.max =</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-4" class="level3">
+<h3 class="anchored" data-anchor-id="step-4">Step 4:</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>clust_rast <span class="ot">&lt;-</span> landsat_crop<span class="sc">$</span>blue</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">values</span>(clust_rast) <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co"># try 2</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>clust_rast_2 <span class="ot">&lt;-</span> landsat_crop<span class="sc">$</span>nir08</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="fu">values</span>(clust_rast_2) <span class="ot">&lt;-</span> <span class="cn">NA</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assign Values</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>clust_rast[blue] <span class="ot">&lt;-</span> kmeans<span class="sc">$</span>cluster</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>clust_rast_2[NIR] <span class="ot">&lt;-</span> kmeans_2<span class="sc">$</span>cluster</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(clust_rast, <span class="at">col =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">5</span>, <span class="st">"Spectral"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 2</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(clust_rast_2, <span class="at">col =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="dv">5</span>, <span class="st">"Spectral"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-16-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="step-5-flood-water" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-flood-water">Step 5: flood water</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate table</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>flood_table <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="fu">values</span>(ndwi_flooded), <span class="fu">values</span>(clust_rast))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># whichmax()</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>flood_cluster <span class="ot">&lt;-</span> <span class="fu">which.max</span>(flood_table[<span class="dv">2</span>,])</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine to identify cluster</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>flood_kmeans <span class="ot">&lt;-</span> <span class="fu">app</span>(clust_rast_2, <span class="at">fun =</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">==</span> flood_cluster, <span class="dv">1</span> , <span class="dv">0</span>))</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>flood_combine_stack <span class="ot">&lt;-</span> <span class="fu">c</span>(flood_stack, flood_kmeans)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(flood_combine_stack) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">names</span>(flood_stack), <span class="st">"Kmeans_flood"</span>)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(flood_combine_stack, <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"white"</span>, <span class="st">"blue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab04_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="question-5-compare" class="level1">
+<h1>Question 5: Compare</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sum flood counts</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>flood_cell_counts <span class="ot">&lt;-</span> <span class="fu">global</span>(flood_combine_stack, sum, <span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate area</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>pixel_area_m2 <span class="ot">&lt;-</span> <span class="fu">prod</span>(<span class="fu">res</span>(flood_combine_stack))</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>flood_area_m2 <span class="ot">&lt;-</span> flood_cell_counts <span class="sc">*</span> pixel_area_m2</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>flood_area_km2 <span class="ot">&lt;-</span> flood_area_m2<span class="sc">/</span><span class="fl">1e6</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>flood_area_km2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                sum
+NDVI Flood   0.8208
+NDWI Flood   0.7182
+MNDWI Flood  1.1736
+WRI Flood    0.9387
+SWI Flood    0.7497
+Kmeans_flood 0.4788</code></pre>
+</div>
+</div>
+<p>summarize agreement</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>flood_agreement <span class="ot">&lt;-</span> <span class="fu">app</span>(flood_combine_stack, <span class="at">fun =</span> sum, <span class="at">na.rm =</span><span class="cn">TRUE</span>)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(flood_agreement, <span class="at">col.regions=</span> blues9)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-86349adfa5d821dc4447" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-86349adfa5d821dc4447">{"x":{"options":{"minZoom":1,"maxZoom":52,"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}},"preferCanvas":false,"bounceAtZoomLimits":false,"maxBounds":[[[-90,-370]],[[90,370]]]},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron","CartoDB.Positron","CartoDB.Positron",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["CartoDB.DarkMatter","CartoDB.DarkMatter","CartoDB.DarkMatter",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap","OpenStreetMap","OpenStreetMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldImagery","Esri.WorldImagery","Esri.WorldImagery",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenTopoMap","OpenTopoMap","OpenTopoMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addRasterImage","args":["data:image/png;base64,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",[[42.08247389784549,-91.81355686180419],[42.04768726196072,-91.77795931783035]],"flood_agreement - 1","flood_agreement - 1",{"tileSize":256,"zIndex":1,"minZoom":0,"opacity":0.8}]},{"method":"removeLayersControl","args":[]},{"method":"addLayersControl","args":[["CartoDB.Positron","CartoDB.DarkMatter","OpenStreetMap","Esri.WorldImagery","OpenTopoMap"],"flood_agreement - 1",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]},{"method":"addControl","args":["","topright","imageValues-flood_agreement - 1","info legend "]},{"method":"addImageQuery","args":["flood_agreement - 1",[-91.81355686180419,42.04742080340203,-91.77787781924566,42.08247389784549],"mousemove",7,"Layer"]},{"method":"addLegend","args":[{"colors":["#F7FBFF , #F7FBFF 0%, #D9E8F5 20%, #B6D4E9 40%, #81B9DA 60%, #4B98C9 80%, #2171B5 100%, #2171B5 "],"labels":["0","1","2","3","4","5"],"na_color":"#BEBEBE","na_label":"NA","opacity":1,"position":"topright","type":"numeric","title":"flood_agreement - 1","extra":{"p_1":0,"p_n":1},"layerId":null,"className":"info legend","group":"flood_agreement - 1"}]},{"method":"addScaleBar","args":[{"maxWidth":100,"metric":true,"imperial":true,"updateWhenIdle":true,"position":"bottomleft"}]},{"method":"addHomeButton","args":[-91.8135568618042,42.04780127070886,-91.77810544042319,42.0824738978455,true,"flood_agreement - 1","Zoom to flood_agreement - 1","<strong> flood_agreement - 1 <\/strong>","bottomright"]}],"limits":{"lat":[42.04768726196072,42.08247389784549],"lng":[-91.81355686180419,-91.77795931783035]}},"evals":[],"jsHooks":{"render":[{"code":"function(el, x, data) {\n  return (\n      function(el, x, data) {\n      // get the leaflet map\n      var map = this; //HTMLWidgets.find('#' + el.id);\n      // we need a new div element because we have to handle\n      // the mouseover output separately\n      // debugger;\n      function addElement () {\n      // generate new div Element\n      var newDiv = $(document.createElement('div'));\n      // append at end of leaflet htmlwidget container\n      $(el).append(newDiv);\n      //provide ID and style\n      newDiv.addClass('lnlt');\n      newDiv.css({\"position\":\"relative\",\"bottomleft\":\"0px\",\"background-color\":\"rgba(255, 255, 255, 0.7)\",\"box-shadow\":\"0 0 2px #bbb\",\"background-clip\":\"padding-box\",\"margin\":\"0\",\"padding-left\":\"5px\",\"padding-right\":\"5px\",\"color\":\"#333\",\"font-size\":\"9px\",\"font-family\":\"\\\"Helvetica Neue\\\", Arial, Helvetica, sans-serif\",\"text-align\":\"left\",\"z-index\":\"700\"});\n      return newDiv;\n      }\n\n\n      // check for already existing lnlt class to not duplicate\n      var lnlt = $(el).find('.lnlt');\n\n      if(!lnlt.length) {\n      lnlt = addElement();\n\n      // grab the special div we generated in the beginning\n      // and put the mousmove output there\n\n      map.on('mousemove', function (e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                           ' lon: ' + (e.latlng.lng).toFixed(5) +\n                           ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                           ' | zoom: ' + map.getZoom() +\n                           ' | x: ' + L.CRS.EPSG3857.project(e.latlng).x.toFixed(0) +\n                           ' | y: ' + L.CRS.EPSG3857.project(e.latlng).y.toFixed(0) +\n                           ' | epsg: 3857 ' +\n                           ' | proj4: +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs ');\n      } else {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      }\n      });\n\n      // remove the lnlt div when mouse leaves map\n      map.on('mouseout', function (e) {\n      var strip = document.querySelector('.lnlt');\n      if( strip !==null) strip.remove();\n      });\n\n      };\n\n      //$(el).keypress(67, function(e) {\n      map.on('preclick', function(e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      var txt = document.querySelector('.lnlt').textContent;\n      console.log(txt);\n      //txt.innerText.focus();\n      //txt.select();\n      setClipboardText('\"' + txt + '\"');\n      }\n      });\n\n      }\n      ).call(this.getMap(), el, x, data);\n}","data":null},{"code":"function(el, x, data) {\n  return (function(el,x,data){\n           var map = this;\n\n           map.on('keypress', function(e) {\n               console.log(e.originalEvent.code);\n               var key = e.originalEvent.code;\n               if (key === 'KeyE') {\n                   var bb = this.getBounds();\n                   var txt = JSON.stringify(bb);\n                   console.log(txt);\n\n                   setClipboardText('\\'' + txt + '\\'');\n               }\n           })\n        }).call(this.getMap(), el, x, data);\n}","data":null}]}}</script>
+</div>
+</div>
+<p>Plot with Mapview</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace 0s with NA</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>flood_agreement_na <span class="ot">&lt;-</span> <span class="fu">classify</span>(flood_agreement, <span class="at">rcl =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>), <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View in interactive map</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mapview)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(flood_agreement_na, <span class="at">col.regions =</span> blues9)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-4b3e8cd160f85a982514" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-4b3e8cd160f85a982514">{"x":{"options":{"minZoom":1,"maxZoom":52,"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}},"preferCanvas":false,"bounceAtZoomLimits":false,"maxBounds":[[[-90,-370]],[[90,370]]]},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron","CartoDB.Positron","CartoDB.Positron",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["CartoDB.DarkMatter","CartoDB.DarkMatter","CartoDB.DarkMatter",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap","OpenStreetMap","OpenStreetMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldImagery","Esri.WorldImagery","Esri.WorldImagery",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenTopoMap","OpenTopoMap","OpenTopoMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addRasterImage","args":["data:image/png;base64,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",[[42.08247389784549,-91.81355686180419],[42.04768726196072,-91.77795931783035]],"flood_agreement_na - 1","flood_agreement_na - 1",{"tileSize":256,"zIndex":1,"minZoom":0,"opacity":0.8}]},{"method":"removeLayersControl","args":[]},{"method":"addLayersControl","args":[["CartoDB.Positron","CartoDB.DarkMatter","OpenStreetMap","Esri.WorldImagery","OpenTopoMap"],"flood_agreement_na - 1",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]},{"method":"addControl","args":["","topright","imageValues-flood_agreement_na - 1","info legend "]},{"method":"addImageQuery","args":["flood_agreement_na - 1",[-91.81355686180419,42.04742080340203,-91.77787781924566,42.08247389784549],"mousemove",7,"Layer"]},{"method":"addLegend","args":[{"colors":["#F7FBFF , #F7FBFF 0%, #E7F1FA 12.5%, #D8E7F5 25%, #C9DDF0 37.5%, #B2D2E8 50%, #98C6E0 62.5%, #79B5D9 75%, #5DA3D0 87.5%, #4292C6 100%, #4292C6 "],"labels":["1.0","1.5","2.0","2.5","3.0","3.5","4.0","4.5","5.0"],"na_color":"#BEBEBE","na_label":"NA","opacity":1,"position":"topright","type":"numeric","title":"flood_agreement_na - 1","extra":{"p_1":0,"p_n":1},"layerId":null,"className":"info legend","group":"flood_agreement_na - 1"}]},{"method":"addScaleBar","args":[{"maxWidth":100,"metric":true,"imperial":true,"updateWhenIdle":true,"position":"bottomleft"}]},{"method":"addHomeButton","args":[-91.8135568618042,42.04780127070886,-91.77810544042319,42.0824738978455,true,"flood_agreement_na - 1","Zoom to flood_agreement_na - 1","<strong> flood_agreement_na - 1 <\/strong>","bottomright"]}],"limits":{"lat":[42.04768726196072,42.08247389784549],"lng":[-91.81355686180419,-91.77795931783035]}},"evals":[],"jsHooks":{"render":[{"code":"function(el, x, data) {\n  return (\n      function(el, x, data) {\n      // get the leaflet map\n      var map = this; //HTMLWidgets.find('#' + el.id);\n      // we need a new div element because we have to handle\n      // the mouseover output separately\n      // debugger;\n      function addElement () {\n      // generate new div Element\n      var newDiv = $(document.createElement('div'));\n      // append at end of leaflet htmlwidget container\n      $(el).append(newDiv);\n      //provide ID and style\n      newDiv.addClass('lnlt');\n      newDiv.css({\"position\":\"relative\",\"bottomleft\":\"0px\",\"background-color\":\"rgba(255, 255, 255, 0.7)\",\"box-shadow\":\"0 0 2px #bbb\",\"background-clip\":\"padding-box\",\"margin\":\"0\",\"padding-left\":\"5px\",\"padding-right\":\"5px\",\"color\":\"#333\",\"font-size\":\"9px\",\"font-family\":\"\\\"Helvetica Neue\\\", Arial, Helvetica, sans-serif\",\"text-align\":\"left\",\"z-index\":\"700\"});\n      return newDiv;\n      }\n\n\n      // check for already existing lnlt class to not duplicate\n      var lnlt = $(el).find('.lnlt');\n\n      if(!lnlt.length) {\n      lnlt = addElement();\n\n      // grab the special div we generated in the beginning\n      // and put the mousmove output there\n\n      map.on('mousemove', function (e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                           ' lon: ' + (e.latlng.lng).toFixed(5) +\n                           ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                           ' | zoom: ' + map.getZoom() +\n                           ' | x: ' + L.CRS.EPSG3857.project(e.latlng).x.toFixed(0) +\n                           ' | y: ' + L.CRS.EPSG3857.project(e.latlng).y.toFixed(0) +\n                           ' | epsg: 3857 ' +\n                           ' | proj4: +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs ');\n      } else {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      }\n      });\n\n      // remove the lnlt div when mouse leaves map\n      map.on('mouseout', function (e) {\n      var strip = document.querySelector('.lnlt');\n      if( strip !==null) strip.remove();\n      });\n\n      };\n\n      //$(el).keypress(67, function(e) {\n      map.on('preclick', function(e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      var txt = document.querySelector('.lnlt').textContent;\n      console.log(txt);\n      //txt.innerText.focus();\n      //txt.select();\n      setClipboardText('\"' + txt + '\"');\n      }\n      });\n\n      }\n      ).call(this.getMap(), el, x, data);\n}","data":null},{"code":"function(el, x, data) {\n  return (function(el,x,data){\n           var map = this;\n\n           map.on('keypress', function(e) {\n               console.log(e.originalEvent.code);\n               var key = e.originalEvent.code;\n               if (key === 'KeyE') {\n                   var bb = this.getBounds();\n                   var txt = JSON.stringify(bb);\n                   console.log(txt);\n\n                   setClipboardText('\\'' + txt + '\\'');\n               }\n           })\n        }).call(this.getMap(), el, x, data);\n}","data":null}]}}</script>
+</div>
+</div>
+<p>THe removal of 0 with NA values caused the pixels to average through the missing values this iteration between two pixels resulted in the non even values.</p>
+</section>
+<section id="extra-credit" class="level1">
+<h1>Extra Credit</h1>
+<p>Use a slippy map to find an place in Palo,Iowa</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(palo_3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-ce28ae593bde0f735d05" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-ce28ae593bde0f735d05">{"x":{"options":{"minZoom":1,"maxZoom":52,"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}},"preferCanvas":false,"bounceAtZoomLimits":false,"maxBounds":[[[-90,-370]],[[90,370]]]},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron","CartoDB.Positron","CartoDB.Positron",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["CartoDB.DarkMatter","CartoDB.DarkMatter","CartoDB.DarkMatter",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap","OpenStreetMap","OpenStreetMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldImagery","Esri.WorldImagery","Esri.WorldImagery",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenTopoMap","OpenTopoMap","OpenTopoMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"createMapPane","args":["polygon",420]},{"method":"addPolygons","args":[[[[{"lng":[-91.81281300000001,-91.778813,-91.778813,-91.81281300000001,-91.81281300000001],"lat":[42.048236,42.04823600000002,42.08223600000001,42.082236,42.048236]}]]],null,"palo_3",{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}},"pane":"polygon","stroke":true,"color":"#333333","weight":0.5,"opacity":0.9,"fill":true,"fillColor":"#6666FF","fillOpacity":0.6,"smoothFactor":1,"noClip":false},"<div class='scrollableContainer'><table class=mapview-popup id='popup'><tr class='coord'><td><\/td><th><b>Feature ID&emsp;<\/b><\/th><td>1&emsp;<\/td><\/tr><tr><td>1<\/td><th>request&emsp;<\/th><td>Palo, Iowa&emsp;<\/td><\/tr><tr><td>2<\/td><th>score&emsp;<\/th><td>100&emsp;<\/td><\/tr><tr><td>3<\/td><th>arcgis_address&emsp;<\/th><td>Palo, Iowa&emsp;<\/td><\/tr><tr><td>4<\/td><th>x&emsp;<\/th><td>-91.79581&emsp;<\/td><\/tr><tr><td>5<\/td><th>y&emsp;<\/th><td>42.06524&emsp;<\/td><\/tr><tr><td>6<\/td><th>geometry&emsp;<\/th><td>sfc_POLYGON&emsp;<\/td><\/tr><\/table><\/div>",{"maxWidth":800,"minWidth":50,"autoPan":true,"keepInView":false,"closeButton":true,"closeOnClick":true,"className":""},"1",{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},{"stroke":true,"weight":1,"opacity":0.9,"fillOpacity":0.84,"bringToFront":false,"sendToBack":false}]},{"method":"addScaleBar","args":[{"maxWidth":100,"metric":true,"imperial":true,"updateWhenIdle":true,"position":"bottomleft"}]},{"method":"addHomeButton","args":[-91.81281300000001,42.048236,-91.778813,42.08223600000001,true,"palo_3","Zoom to palo_3","<strong> palo_3 <\/strong>","bottomright"]},{"method":"addLayersControl","args":[["CartoDB.Positron","CartoDB.DarkMatter","OpenStreetMap","Esri.WorldImagery","OpenTopoMap"],"palo_3",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]},{"method":"addLegend","args":[{"colors":["#6666FF"],"labels":["palo_3"],"na_color":null,"na_label":"NA","opacity":1,"position":"topright","type":"factor","title":"","extra":null,"layerId":null,"className":"info legend","group":"palo_3"}]}],"limits":{"lat":[42.048236,42.08223600000001],"lng":[-91.81281300000001,-91.778813]},"fitBounds":[42.048236,-91.81281300000001,42.08223600000001,-91.778813,[]]},"evals":[],"jsHooks":{"render":[{"code":"function(el, x, data) {\n  return (\n      function(el, x, data) {\n      // get the leaflet map\n      var map = this; //HTMLWidgets.find('#' + el.id);\n      // we need a new div element because we have to handle\n      // the mouseover output separately\n      // debugger;\n      function addElement () {\n      // generate new div Element\n      var newDiv = $(document.createElement('div'));\n      // append at end of leaflet htmlwidget container\n      $(el).append(newDiv);\n      //provide ID and style\n      newDiv.addClass('lnlt');\n      newDiv.css({\"position\":\"relative\",\"bottomleft\":\"0px\",\"background-color\":\"rgba(255, 255, 255, 0.7)\",\"box-shadow\":\"0 0 2px #bbb\",\"background-clip\":\"padding-box\",\"margin\":\"0\",\"padding-left\":\"5px\",\"padding-right\":\"5px\",\"color\":\"#333\",\"font-size\":\"9px\",\"font-family\":\"\\\"Helvetica Neue\\\", Arial, Helvetica, sans-serif\",\"text-align\":\"left\",\"z-index\":\"700\"});\n      return newDiv;\n      }\n\n\n      // check for already existing lnlt class to not duplicate\n      var lnlt = $(el).find('.lnlt');\n\n      if(!lnlt.length) {\n      lnlt = addElement();\n\n      // grab the special div we generated in the beginning\n      // and put the mousmove output there\n\n      map.on('mousemove', function (e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                           ' lon: ' + (e.latlng.lng).toFixed(5) +\n                           ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                           ' | zoom: ' + map.getZoom() +\n                           ' | x: ' + L.CRS.EPSG3857.project(e.latlng).x.toFixed(0) +\n                           ' | y: ' + L.CRS.EPSG3857.project(e.latlng).y.toFixed(0) +\n                           ' | epsg: 3857 ' +\n                           ' | proj4: +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs ');\n      } else {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      }\n      });\n\n      // remove the lnlt div when mouse leaves map\n      map.on('mouseout', function (e) {\n      var strip = document.querySelector('.lnlt');\n      if( strip !==null) strip.remove();\n      });\n\n      };\n\n      //$(el).keypress(67, function(e) {\n      map.on('preclick', function(e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      var txt = document.querySelector('.lnlt').textContent;\n      console.log(txt);\n      //txt.innerText.focus();\n      //txt.select();\n      setClipboardText('\"' + txt + '\"');\n      }\n      });\n\n      }\n      ).call(this.getMap(), el, x, data);\n}","data":null},{"code":"function(el, x, data) {\n  return (function(el,x,data){\n           var map = this;\n\n           map.on('keypress', function(e) {\n               console.log(e.originalEvent.code);\n               var key = e.originalEvent.code;\n               if (key === 'KeyE') {\n                   var bb = this.getBounds();\n                   var txt = JSON.stringify(bb);\n                   console.log(txt);\n\n                   setClipboardText('\\'' + txt + '\\'');\n               }\n           })\n        }).call(this.getMap(), el, x, data);\n}","data":null}]}}</script>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>flood_lat <span class="ot">&lt;-</span> <span class="fl">42.06347</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>flood_lon <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">91.78925</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>flood_site <span class="ot">&lt;-</span> <span class="fu">st_point</span>(<span class="fu">c</span>(flood_lon, flood_lat))</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>flood_site <span class="ot">&lt;-</span> <span class="fu">st_sfc</span>(flood_site, <span class="at">crs =</span> <span class="fu">crs</span>(flood_combine_stack))</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>flood_site <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(flood_site, <span class="at">crs =</span> <span class="fu">crs</span>(flood_combine_stack))</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>flood_site_vec <span class="ot">&lt;-</span> <span class="fu">vect</span>(flood_site)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>flood_values <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">extract</span>(flood_combine_stack, flood_site_vec)</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>flood_values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  ID NDVI Flood NDWI Flood MNDWI Flood WRI Flood SWI Flood Kmeans_flood
+1  1         NA         NA          NA        NA        NA           NA</code></pre>
+</div>
+</div>
+</section>
+<section id="attempt-2" class="level1">
+<h1>Attempt 2</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(palo_3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-eac75555269eefd07531" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-eac75555269eefd07531">{"x":{"options":{"minZoom":1,"maxZoom":52,"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}},"preferCanvas":false,"bounceAtZoomLimits":false,"maxBounds":[[[-90,-370]],[[90,370]]]},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron","CartoDB.Positron","CartoDB.Positron",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["CartoDB.DarkMatter","CartoDB.DarkMatter","CartoDB.DarkMatter",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap","OpenStreetMap","OpenStreetMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldImagery","Esri.WorldImagery","Esri.WorldImagery",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenTopoMap","OpenTopoMap","OpenTopoMap",{"errorTileUrl":"","noWrap":false,"detectRetina":false,"pane":"tilePane"}]},{"method":"createMapPane","args":["polygon",420]},{"method":"addPolygons","args":[[[[{"lng":[-91.81281300000001,-91.778813,-91.778813,-91.81281300000001,-91.81281300000001],"lat":[42.048236,42.04823600000002,42.08223600000001,42.082236,42.048236]}]]],null,"palo_3",{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}},"pane":"polygon","stroke":true,"color":"#333333","weight":0.5,"opacity":0.9,"fill":true,"fillColor":"#6666FF","fillOpacity":0.6,"smoothFactor":1,"noClip":false},"<div class='scrollableContainer'><table class=mapview-popup id='popup'><tr class='coord'><td><\/td><th><b>Feature ID&emsp;<\/b><\/th><td>1&emsp;<\/td><\/tr><tr><td>1<\/td><th>request&emsp;<\/th><td>Palo, Iowa&emsp;<\/td><\/tr><tr><td>2<\/td><th>score&emsp;<\/th><td>100&emsp;<\/td><\/tr><tr><td>3<\/td><th>arcgis_address&emsp;<\/th><td>Palo, Iowa&emsp;<\/td><\/tr><tr><td>4<\/td><th>x&emsp;<\/th><td>-91.79581&emsp;<\/td><\/tr><tr><td>5<\/td><th>y&emsp;<\/th><td>42.06524&emsp;<\/td><\/tr><tr><td>6<\/td><th>geometry&emsp;<\/th><td>sfc_POLYGON&emsp;<\/td><\/tr><\/table><\/div>",{"maxWidth":800,"minWidth":50,"autoPan":true,"keepInView":false,"closeButton":true,"closeOnClick":true,"className":""},"1",{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},{"stroke":true,"weight":1,"opacity":0.9,"fillOpacity":0.84,"bringToFront":false,"sendToBack":false}]},{"method":"addScaleBar","args":[{"maxWidth":100,"metric":true,"imperial":true,"updateWhenIdle":true,"position":"bottomleft"}]},{"method":"addHomeButton","args":[-91.81281300000001,42.048236,-91.778813,42.08223600000001,true,"palo_3","Zoom to palo_3","<strong> palo_3 <\/strong>","bottomright"]},{"method":"addLayersControl","args":[["CartoDB.Positron","CartoDB.DarkMatter","OpenStreetMap","Esri.WorldImagery","OpenTopoMap"],"palo_3",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]},{"method":"addLegend","args":[{"colors":["#6666FF"],"labels":["palo_3"],"na_color":null,"na_label":"NA","opacity":1,"position":"topright","type":"factor","title":"","extra":null,"layerId":null,"className":"info legend","group":"palo_3"}]}],"limits":{"lat":[42.048236,42.08223600000001],"lng":[-91.81281300000001,-91.778813]},"fitBounds":[42.048236,-91.81281300000001,42.08223600000001,-91.778813,[]]},"evals":[],"jsHooks":{"render":[{"code":"function(el, x, data) {\n  return (\n      function(el, x, data) {\n      // get the leaflet map\n      var map = this; //HTMLWidgets.find('#' + el.id);\n      // we need a new div element because we have to handle\n      // the mouseover output separately\n      // debugger;\n      function addElement () {\n      // generate new div Element\n      var newDiv = $(document.createElement('div'));\n      // append at end of leaflet htmlwidget container\n      $(el).append(newDiv);\n      //provide ID and style\n      newDiv.addClass('lnlt');\n      newDiv.css({\"position\":\"relative\",\"bottomleft\":\"0px\",\"background-color\":\"rgba(255, 255, 255, 0.7)\",\"box-shadow\":\"0 0 2px #bbb\",\"background-clip\":\"padding-box\",\"margin\":\"0\",\"padding-left\":\"5px\",\"padding-right\":\"5px\",\"color\":\"#333\",\"font-size\":\"9px\",\"font-family\":\"\\\"Helvetica Neue\\\", Arial, Helvetica, sans-serif\",\"text-align\":\"left\",\"z-index\":\"700\"});\n      return newDiv;\n      }\n\n\n      // check for already existing lnlt class to not duplicate\n      var lnlt = $(el).find('.lnlt');\n\n      if(!lnlt.length) {\n      lnlt = addElement();\n\n      // grab the special div we generated in the beginning\n      // and put the mousmove output there\n\n      map.on('mousemove', function (e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                           ' lon: ' + (e.latlng.lng).toFixed(5) +\n                           ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                           ' | zoom: ' + map.getZoom() +\n                           ' | x: ' + L.CRS.EPSG3857.project(e.latlng).x.toFixed(0) +\n                           ' | y: ' + L.CRS.EPSG3857.project(e.latlng).y.toFixed(0) +\n                           ' | epsg: 3857 ' +\n                           ' | proj4: +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs ');\n      } else {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      }\n      });\n\n      // remove the lnlt div when mouse leaves map\n      map.on('mouseout', function (e) {\n      var strip = document.querySelector('.lnlt');\n      if( strip !==null) strip.remove();\n      });\n\n      };\n\n      //$(el).keypress(67, function(e) {\n      map.on('preclick', function(e) {\n      if (e.originalEvent.ctrlKey) {\n      if (document.querySelector('.lnlt') === null) lnlt = addElement();\n      lnlt.text(\n                      ' lon: ' + (e.latlng.lng).toFixed(5) +\n                      ' | lat: ' + (e.latlng.lat).toFixed(5) +\n                      ' | zoom: ' + map.getZoom() + ' ');\n      var txt = document.querySelector('.lnlt').textContent;\n      console.log(txt);\n      //txt.innerText.focus();\n      //txt.select();\n      setClipboardText('\"' + txt + '\"');\n      }\n      });\n\n      }\n      ).call(this.getMap(), el, x, data);\n}","data":null},{"code":"function(el, x, data) {\n  return (function(el,x,data){\n           var map = this;\n\n           map.on('keypress', function(e) {\n               console.log(e.originalEvent.code);\n               var key = e.originalEvent.code;\n               if (key === 'KeyE') {\n                   var bb = this.getBounds();\n                   var txt = JSON.stringify(bb);\n                   console.log(txt);\n\n                   setClipboardText('\\'' + txt + '\\'');\n               }\n           })\n        }).call(this.getMap(), el, x, data);\n}","data":null}]}}</script>
+</div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>flood_lat_2 <span class="ot">&lt;-</span> <span class="fl">42.06745</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>flood_lon_2 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">91.79163</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>flood_site_2 <span class="ot">&lt;-</span> <span class="fu">st_point</span>(<span class="fu">c</span>(flood_lon_2, flood_lat_2))</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>flood_site_2 <span class="ot">&lt;-</span> <span class="fu">st_sfc</span>(flood_site_2, <span class="at">crs =</span> <span class="fu">crs</span>(flood_combine_stack))</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>flood_site_2 <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(flood_site_2, <span class="at">crs =</span> <span class="fu">crs</span>(flood_combine_stack))</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>flood_site_vec_2 <span class="ot">&lt;-</span> <span class="fu">vect</span>(flood_site_2)</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>flood_values_2 <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">extract</span>(flood_combine_stack, flood_site_vec_2)</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>flood_values_2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  ID NDVI Flood NDWI Flood MNDWI Flood WRI Flood SWI Flood Kmeans_flood
+1  1         NA         NA          NA        NA        NA           NA</code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
